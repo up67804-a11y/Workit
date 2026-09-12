@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workit - Digital Workspace</title>
+    
+    <!-- PWA, Favicon & Theme Integration -->
+    <meta name="theme-color" content="#090d16">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Clean PDF Generation Engine (jsPDF + html2pdf bundle) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- PDF-Lib for Merge PDF -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #090d16;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(23, 31, 48, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.3);
+        }
+
+        .drop-zone {
+            border: 2px dashed #334155;
+            border-radius: 16px;
+            padding: 24px 16px;
+            text-align: center;
+            background: rgba(15, 23, 42, 0.6);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .drop-zone:hover {
+            border-color: #6366f1;
+            background: rgba(30, 41, 59, 0.8);
+        }
+    </style>
+</head>
+<body class="relative min-h-screen pb-12">
+
+    <!-- Header -->
+    <header class="sticky top-4 z-40 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="glass-panel rounded-2xl px-6 py-4 flex items-center justify-between shadow-2xl">
+            <div class="flex items-center space-x-3 cursor-pointer">
+                
+                <!-- Workit Premium SVG Logo -->
+                <div class="w-10 h-10 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="w-full h-full">
+                      <defs>
+                        <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stop-color="#0f172a" />
+                          <stop offset="100%" stop-color="#090d16" />
+                        </linearGradient>
+
+                        <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stop-color="#6366f1" />
+                          <stop offset="100%" stop-color="#a855f7" />
+                        </linearGradient>
+
+                        <linearGradient id="secondaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stop-color="#06b6d4" />
+                          <stop offset="100%" stop-color="#4f46e5" />
+                        </linearGradient>
+
+                        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                          <feGaussianBlur stdDeviation="12" result="blur" />
+                          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                      </defs>
+
+                      <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+                      <rect x="32" y="32" width="448" height="448" rx="104" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="4" />
+
+                      <g filter="url(#glow)">
+                        <path d="M112 160 L168 352 C172 366 188 372 200 362 L256 312 L192 160 Z" fill="url(#primaryGrad)" />
+                        <path d="M400 160 L344 352 C340 366 324 372 312 362 L256 312 L320 160 Z" fill="url(#secondaryGrad)" />
+                        <path d="M256 160 L200 288 L256 320 L312 288 Z" fill="#ffffff" opacity="0.95" />
+                      </g>
+
+                      <circle cx="256" cy="384" r="10" fill="#ec4899" />
+                    </svg>
+                </div>
+
+                <span class="text-2xl font-extrabold tracking-tight text-white">
+                    Workit<span class="text-indigo-500">.</span>
+                </span>
+            </div>
+            <div class="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-300">
+                <a href="#" class="text-white hover:text-indigo-400">Tools</a>
+                <a href="#" class="hover:text-indigo-400">Recent Work</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+        <div class="text-center max-w-3xl mx-auto mb-12">
+            <span class="inline-block px-4 py-1.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-4">
+                <i class="fa-solid fa-layer-group mr-1"></i> All-In-One Workspace
+            </span>
+            <h1 class="text-4xl sm:text-5xl font-black text-white mb-4">
+                Work Faster with <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Next-Gen</span> Tools.
+            </h1>
+            <p class="text-slate-400 text-sm sm:text-base">Text to PDF, Merge PDF & Utility Tools — Sub Kuch Ek Jagah.</p>
+        </div>
+
+        <!-- Tools Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- Tool Card 1 -->
+            <div onclick="openWorkspace('textToPdf')" class="glass-card p-6 rounded-3xl cursor-pointer group">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                        <i class="fa-solid fa-file-lines text-xl"></i>
+                    </div>
+                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Active</span>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2 group-hover:text-indigo-400">Text to PDF Converter</h3>
+                <p class="text-sm text-slate-400 mb-4">Apna content yahan write ya paste karke instant PDF generate karein.</p>
+                <div class="text-xs font-semibold text-indigo-400 flex items-center gap-1">
+                    Open Tool <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </div>
+
+            <!-- Tool Card 2 -->
+            <div onclick="openWorkspace('mergePdf')" class="glass-card p-6 rounded-3xl cursor-pointer group">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                        <i class="fa-solid fa-file-circle-plus text-xl"></i>
+                    </div>
+                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Active</span>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2 group-hover:text-purple-400">Merge PDF</h3>
+                <p class="text-sm text-slate-400 mb-4">Multiple PDF files ko aapas me jod kar ek single PDF file banayein.</p>
+                <div class="text-xs font-semibold text-purple-400 flex items-center gap-1">
+                    Open Tool <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal Window -->
+    <div id="toolModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-2xl rounded-3xl border border-slate-700/80 p-6 relative max-h-[95vh] overflow-y-auto">
+            
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+                <h2 id="modalTitle" class="text-xl font-bold text-white">Tool Workspace</h2>
+                <button type="button" onclick="closeWorkspace()" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <!-- Engine 1: Text To PDF Engine -->
+            <div id="textToPdfEngine" class="hidden">
+                <div class="mb-4">
+                    <label for="pdf-title" class="block font-medium text-slate-300 text-sm mb-1.5">Document Title / File Name:</label>
+                    <input type="text" id="pdf-title" placeholder="Filename yahan likhein (e.g. MyDocument)" class="w-full p-3 rounded-xl bg-slate-900 text-white border border-slate-700 focus:outline-none focus:border-indigo-500 text-sm">
+                </div>
+
+                <div class="mb-4">
+                    <label for="text-content" class="block font-medium text-slate-300 text-sm mb-1.5">Apna Text Yahan Likhein:</label>
+                    <textarea id="text-content" placeholder="Apna content yahan paste ya type karein..." class="w-full h-48 p-3 rounded-xl bg-slate-900 text-white border border-slate-700 focus:outline-none focus:border-indigo-500 text-sm resize-y font-sans"></textarea>
+                </div>
+
+                <div class="flex gap-3 mt-4">
+                    <button type="button" class="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition" onclick="generatePDF()">PDF Download Karein</button>
+                    <button type="button" class="flex-1 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm transition" onclick="clearText()">Clear Text</button>
+                </div>
+            </div>
+
+            <!-- Engine 2: Merge PDF -->
+            <div id="mergePdfEngine" class="hidden">
+                <div class="drop-zone" onclick="document.getElementById('pdf-input').click()">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-400 mb-2"></i>
+                    <p class="font-semibold text-white text-sm">PDF Files Select Karein</p>
+                    <p class="text-xs text-slate-400 mt-1">ya files Drag & Drop karein</p>
+                    <input type="file" id="pdf-input" accept="application/pdf" multiple onchange="handleFiles(this.files)" class="hidden">
+                </div>
+
+                <div class="mt-4">
+                    <div class="flex justify-between text-xs font-semibold text-slate-400 mb-2">
+                        <span>Files: <strong id="total-files" class="text-white">0</strong></span>
+                        <span>Total Pages: <strong id="total-pages" class="text-white">0</strong></span>
+                    </div>
+                    <ul class="space-y-2 max-h-48 overflow-y-auto pr-2" id="file-list"></ul>
+                </div>
+
+                <button id="merge-btn" type="button" onclick="mergePDFs()" disabled class="w-full mt-4 py-3 rounded-xl bg-indigo-600 disabled:bg-slate-800 text-white font-bold text-sm flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-object-group"></i> Merge PDFs
+                </button>
+
+                <div id="status" class="mt-2 text-center text-xs text-slate-400"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('ServiceWorker registered'))
+                .catch(err => console.log('ServiceWorker error:', err));
+        }
+
+        // Workspace Controls
+        function openWorkspace(type) {
+            document.getElementById('toolModal').classList.remove('hidden');
+            document.getElementById('textToPdfEngine').classList.add('hidden');
+            document.getElementById('mergePdfEngine').classList.add('hidden');
+
+            if (type === 'textToPdf') {
+                document.getElementById('modalTitle').innerText = "Text to PDF Converter";
+                document.getElementById('textToPdfEngine').classList.remove('hidden');
+            } else if (type === 'mergePdf') {
+                document.getElementById('modalTitle').innerText = "Smart PDF Merger";
+                document.getElementById('mergePdfEngine').classList.remove('hidden');
+            }
+        }
+
+        function closeWorkspace() {
+            document.getElementById('toolModal').classList.add('hidden');
+        }
+
+        /* =========================================
+           ENGINE 1: TEXT TO PDF
+           ========================================= */
+        function generatePDF() {
+            const textContent = document.getElementById("text-content").value;
+            const fileNameInput = document.getElementById("pdf-title").value.trim();
+
+            if (!textContent.trim()) {
+                alert("Kripya PDF banane ke liye kuch text likhein!");
+                return;
+            }
+
+            const fileName = fileNameInput ? `${fileNameInput}.pdf` : 'document.pdf';
+
+            const element = document.createElement('div');
+            element.style.padding = '4mm 4mm'; 
+            element.style.boxSizing = 'border-box';
+            element.style.fontSize = '14px';
+            element.style.lineHeight = '1.6';
+            element.style.color = '#333';
+            element.style.whiteSpace = 'pre-wrap';
+            element.style.wordBreak = 'break-word';
+            element.innerText = textContent;
+
+            const opt = {
+                margin:       [10, 5, 10, 5], 
+                filename:     fileName,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, scrollY: 0, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function clearText() {
+            const textContent = document.getElementById("text-content").value;
+            const fileNameInput = document.getElementById("pdf-title").value;
+
+            if (!textContent && !fileNameInput) {
+                return;
+            }
+
+            if (confirm("Kya aap sach me saara text mitaana chahte hain?")) {
+                document.getElementById("text-content").value = "";
+                document.getElementById("pdf-title").value = "";
+            }
+        }
+
+        /* =========================================
+           ENGINE 2: MERGE PDF
+           ========================================= */
+        let selectedFiles = [];
+
+        async function handleFiles(files) {
+            for (let file of files) {
+                if (file.type === "application/pdf") {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+                    selectedFiles.push({ file: file, pageCount: pdf.getPageCount() });
+                }
+            }
+            renderFileList();
+        }
+
+        function renderFileList() {
+            const listElement = document.getElementById('file-list');
+            const mergeBtn = document.getElementById('merge-btn');
+            listElement.innerHTML = '';
+            let totalPages = 0;
+
+            selectedFiles.forEach((item, index) => {
+                totalPages += item.pageCount;
+                const li = document.createElement('li');
+                li.className = 'flex items-center justify-between bg-slate-900 p-2.5 rounded-xl border border-slate-800';
+                li.innerHTML = `
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <i class="fa-solid fa-file-pdf text-red-500"></i>
+                        <span class="text-xs text-slate-200 truncate max-w-[150px]">${item.file.name}</span>
+                        <span class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">${item.pageCount}P</span>
+                    </div>
+                    <div class="flex gap-1">
+                        <button type="button" class="p-1 text-slate-400 hover:text-white" onclick="moveFile(${index}, -1)"><i class="fa-solid fa-arrow-up text-xs"></i></button>
+                        <button type="button" class="p-1 text-slate-400 hover:text-white" onclick="moveFile(${index}, 1)"><i class="fa-solid fa-arrow-down text-xs"></i></button>
+                        <button type="button" class="p-1 text-slate-400 hover:text-red-400" onclick="removeFile(${index})"><i class="fa-solid fa-trash text-xs"></i></button>
+                    </div>
+                `;
+                listElement.appendChild(li);
+            });
+
+            document.getElementById('total-files').innerText = selectedFiles.length;
+            document.getElementById('total-pages').innerText = totalPages;
+            mergeBtn.disabled = selectedFiles.length === 0;
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderFileList();
+        }
+
+        function moveFile(index, dir) {
+            const newIndex = index + dir;
+            if (newIndex >= 0 && newIndex < selectedFiles.length) {
+                const temp = selectedFiles[index];
+                selectedFiles[index] = selectedFiles[newIndex];
+                selectedFiles[newIndex] = temp;
+                renderFileList();
+            }
+        }
+
+        async function mergePDFs() {
+            const status = document.getElementById('status');
+            status.innerText = "Merging PDFs...";
+
+            try {
+                const mergedPdf = await PDFLib.PDFDocument.create();
+                for (let item of selectedFiles) {
+                    const arrayBuffer = await item.file.arrayBuffer();
+                    const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+                    const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                    pages.forEach(page => mergedPdf.addPage(page));
+                }
+
+                const mergedPdfBytes = await mergedPdf.save();
+                const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'Merged_Document.pdf';
+                link.click();
+                
+                status.innerText = "PDFs successfully merged!";
+            } catch (err) {
+                console.error("Merge error:", err);
+                status.innerText = "Error merging PDFs.";
+            }
+        }
+    </script>
+</body>
+</html>
